@@ -3,6 +3,7 @@ applications:
 parameters:
   _param:
     mongodb_server_replica_set: default
+    mongodb_server_members: 127.0.0.1
   mongodb:
     server:
       enabled: true
