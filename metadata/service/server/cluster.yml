@@ -5,7 +5,7 @@ classes:
 parameters:
   _param:
     mongodb_server_replica_set: default
-    mongodb_server_members: 127.0.0.1
+    #mongodb_server_members: 127.0.0.1
   mongodb:
     server:
       enabled: true
@@ -17,6 +17,6 @@ parameters:
         port: 27017
       replica_set: ${_param:mongodb_server_replica_set}
       shared_key: ${_param:mongodb_shared_key}
-      members: ${_param:mongodb_server_members}
+      #members: ${_param:mongodb_server_members}
       master: ${_param:mongodb_master}
 
