@@ -34,6 +34,9 @@ mongodb_service:
   service.running:
   - name: {{ server.service }}
   - enable: true
+  {%- if grains.get('noservices') %}
+  - onlyif: /bin/false
+  {%- endif %}
   - require:
     - file: {{ server.lock_dir }}
     - pkg: mongodb_packages
@@ -53,6 +56,9 @@ mongodb_service:
 mongodb_change_root_password:
   cmd.run:
   - name: 'mongo localhost:27017/admin /var/tmp/mongodb_user.js && touch {{ server.lock_dir }}/mongodb_password_changed'
+  {%- if grains.get('noservices') %}
+  - onlyif: /bin/false
+  {%- endif %}
   - require:
     - file: /var/tmp/mongodb_user.js
     - service: mongodb_service
@@ -60,33 +66,29 @@ mongodb_change_root_password:
 
 {%- for database_name, database in server.get('database', {}).iteritems() %}
 
-mongodb_database_{{ database_name }}:
-  mongodb_user.present:
-  - name: {{ database_name }}
-  - passwd: {{ database.password }}
-  {%- if server.members is defined %}
-  require:
-    - cmd: mongodb_setup_cluster
-  {%- endif %}
-
 /var/tmp/mongodb_user_{{ database_name }}.js:
   file.managed:
   - source: salt://mongodb/files/user_role.js
   - template: jinja
   - mode: 600
   - user: root
-  - require:
-    - mongodb_user: {{ database_name }}
   - defaults:
       database_name: {{ database_name }}
 
 mongodb_{{ database_name }}_fix_role:
   cmd.run:
   - name: 'mongo localhost:27017/admin -u admin -p {{ server.admin.password }} /var/tmp/mongodb_user_{{ database_name }}.js && touch {{ server.lock_dir }}/mongodb_user_{{ database_name }}_created'
+  {%- if grains.get('noservices') %}
+  - onlyif: /bin/false
+  {%- endif %}
   - require:
     - file: /var/tmp/mongodb_user_{{ database_name }}.js
     - service: mongodb_service
   - creates: {{ server.lock_dir }}/mongodb_user_{{ database_name }}_created
+  {%- if server.members is defined %}
+  require:
+    - cmd: mongodb_setup_cluster
+  {%- endif %}
 
 {%- endfor %}
 
